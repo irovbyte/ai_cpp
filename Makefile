@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -I./include
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -Isrc -I./include
 LDFLAGS = -lsqlite3 -lcurl
 
 SRC = src/main.cpp \
@@ -7,14 +7,15 @@ SRC = src/main.cpp \
       src/memory.cpp \
       src/web.cpp \
       src/format.cpp \
-      src/utils.cpp
+      src/utils.cpp \
+      src/math.cpp
 
 OBJ = $(SRC:.cpp=.o)
 TARGET = build/bot
 
-# сюда вставь свои реальные ключи
-GOOGLE_API_KEY = твой_ключ
-GOOGLE_CX      = твой_cx
+
+GOOGLE_API_KEY = 
+GOOGLE_CX      = 
 
 all: $(TARGET)
 

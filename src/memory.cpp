@@ -16,12 +16,10 @@ MemoryDB::~MemoryDB() { close(); }
 
 void MemoryDB::init() {
   const char *sql = "CREATE TABLE IF NOT EXISTS memory ("
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    "key TEXT,"
+                    "key TEXT PRIMARY KEY,"
                     "value TEXT);";
   char *errMsg = nullptr;
-  if (sqlite3_exec((sqlite3 *)db, sql, nullptr, nullptr, &errMsg) !=
-      SQLITE_OK) {
+  if (sqlite3_exec((sqlite3 *)db, sql, nullptr, nullptr, &errMsg) != SQLITE_OK) {
     std::cerr << "Ошибка создания таблицы: " << errMsg << std::endl;
     sqlite3_free(errMsg);
   }
@@ -33,7 +31,9 @@ void MemoryDB::close() {
 }
 
 bool MemoryDB::save(const std::string &key, const std::string &value) {
-  const char *sql = "INSERT INTO memory (key, value) VALUES (?, ?);";
+  const char *sql =
+      "INSERT INTO memory (key, value) VALUES (?, ?) "
+      "ON CONFLICT(key) DO UPDATE SET value=excluded.value;";
   sqlite3_stmt *stmt;
   if (sqlite3_prepare_v2((sqlite3 *)db, sql, -1, &stmt, nullptr) != SQLITE_OK)
     return false;
@@ -66,4 +66,21 @@ std::vector<MemoryEntry> MemoryDB::search(const std::string &query) {
   }
   sqlite3_finalize(stmt);
   return results;
+}
+
+bool MemoryDB::find(const std::string &key, std::string &value) {
+  const char *sql = "SELECT value FROM memory WHERE key=? LIMIT 1;";
+  sqlite3_stmt *stmt;
+  if (sqlite3_prepare_v2((sqlite3 *)db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    return false;
+
+  sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_TRANSIENT);
+
+  bool found = false;
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    value = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+    found = true;
+  }
+  sqlite3_finalize(stmt);
+  return found;
 }

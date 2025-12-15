@@ -15,6 +15,9 @@ public:
   bool save(const std::string &key, const std::string &value);
   std::vector<MemoryEntry> search(const std::string &query);
 
+  // 🔎 Быстрый точный поиск
+  bool find(const std::string &key, std::string &value);
+
 private:
   void init();
   void close();
